@@ -1,0 +1,13 @@
+ALTER TABLE "User" ADD COLUMN "skills" TEXT[] DEFAULT ARRAY[]::TEXT[];
+ALTER TABLE "Project" ADD COLUMN "facultyVerified" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Project" ADD COLUMN "verifiedBy" TEXT;
+CREATE TABLE "Message" ("id" TEXT NOT NULL, "body" TEXT NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "requestId" TEXT NOT NULL, "senderId" TEXT NOT NULL, CONSTRAINT "Message_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "Notification" ("id" TEXT NOT NULL, "title" TEXT NOT NULL, "body" TEXT NOT NULL, "href" TEXT, "read" BOOLEAN NOT NULL DEFAULT false, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, "userId" TEXT NOT NULL, CONSTRAINT "Notification_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "SurveyResponse" ("id" TEXT NOT NULL, "year" TEXT NOT NULL, "branch" TEXT NOT NULL, "college" TEXT NOT NULL, "awareness" INTEGER NOT NULL, "discoveryMethod" TEXT NOT NULL, "wantedCollaboration" BOOLEAN NOT NULL, "likelihood" INTEGER NOT NULL, "mostImportantFeature" TEXT NOT NULL, "barrier" TEXT, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "SurveyResponse_pkey" PRIMARY KEY ("id"));
+CREATE INDEX "Message_requestId_createdAt_idx" ON "Message"("requestId", "createdAt");
+CREATE INDEX "Message_senderId_idx" ON "Message"("senderId");
+CREATE INDEX "Notification_userId_read_idx" ON "Notification"("userId", "read");
+CREATE INDEX "SurveyResponse_createdAt_idx" ON "SurveyResponse"("createdAt");
+ALTER TABLE "Message" ADD CONSTRAINT "Message_requestId_fkey" FOREIGN KEY ("requestId") REFERENCES "CollabRequest"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Message" ADD CONSTRAINT "Message_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

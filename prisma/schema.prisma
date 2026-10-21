@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProjectStatus {
+  IDEA
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model User {
+  id            String          @id @default(cuid())
+  name          String
+  email         String          @unique
+  passwordHash  String
+  college       String
+  state         String
+  skills        String[]        @default([])
+  createdAt     DateTime        @default(now())
+  projects      Project[]
+  requests      CollabRequest[]
+  messages      Message[]
+  notifications Notification[]
+}
+
+model Project {
+  id                        String          @id @default(cuid())
+  title                     String
+  description               String
+  tech                      String[]
+  githubUrl                 String?
+  status                    ProjectStatus   @default(IDEA)
+  teamSize                  Int             @default(1)
+  lookingFor                String?
+  isDemo                    Boolean         @default(false)
+  facultyVerified           Boolean         @default(false)
+  verifiedBy                String?
+  verificationCodeHash      String?
+  verificationCodeExpiresAt DateTime?
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  ownerId                   String
+  owner                     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  requests                  CollabRequest[]
+
+  @@index([status])
+  @@index([ownerId])
+  @@index([createdAt])
+}
+
+model CollabRequest {
+  id         String        @id @default(cuid())
+  message    String?
+  status     RequestStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  projectId  String
+  project    Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fromUserId String
+  fromUser   User          @relation(fields: [fromUserId], references: [id], onDelete: Cascade)
+  messages   Message[]
+
+  @@unique([projectId, fromUserId])
+  @@index([fromUserId])
+}
+
+model Message {
+  id        String        @id @default(cuid())
+  body      String
+  createdAt DateTime      @default(now())
+  readAt    DateTime?
+  requestId String
+  request   CollabRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, createdAt])
+  @@index([senderId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  href      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+}
+
+model SurveyResponse {
+  id                   String   @id @default(cuid())
+  year                 String
+  branch               String
+  college              String
+  awareness            Int
+  discoveryMethod      String
+  wantedCollaboration  Boolean
+  likelihood           Int
+  mostImportantFeature String
+  barrier              String?
+  createdAt            DateTime @default(now())
+
+  @@index([createdAt])
+}
